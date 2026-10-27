@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bed Board · InPatient</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <style>
+    .wardtabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .wardtab { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 8px 14px; cursor: pointer; font-weight: 600; color: var(--text-2); }
+    .wardtab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .legend { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ward { margin-bottom: 26px; }
+    .ward-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+    .beds { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 12px; }
+    .bed { position: relative; border-radius: var(--radius); padding: 12px; min-height: 118px; cursor: pointer; border: 1px solid var(--border);
+      background: var(--surface); box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s; border-left-width: 6px; }
+    .bed:hover { transform: translateY(-2px); }
+    .bed.Free { border-left-color: var(--bed-free); background: var(--bed-free-bg); }
+    .bed.Reserved { border-left-color: var(--bed-reserved); background: var(--bed-reserved-bg); }
+    .bed.Occupied { border-left-color: var(--bed-occupied); }
+    .bed.Cleaning { border-left-color: var(--bed-cleaning); background: var(--bed-cleaning-bg); }
+    .bed.Blocked { border-left-color: var(--bed-blocked); background: var(--bed-blocked-bg); }
+    .bed.flag-Watch { box-shadow: 0 0 0 2px var(--watch), var(--shadow); }
+    .bed.flag-Critical { box-shadow: 0 0 0 3px var(--critical), var(--shadow); animation: pulse 1.8s infinite; }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(220,38,38,.25), var(--shadow); } }
+    .bed .num { font-weight: 800; font-size: 17px; }
+    .bed .name { font-weight: 650; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bed .meta { font-size: 12.5px; color: var(--text-2); }
+    .bed .top { display: flex; justify-content: space-between; align-items: center; }
+    .bed.flash { animation: flash 1s; }
+    @keyframes flash { from { transform: scale(1.04); } }
+    .stats { display: flex; gap: 6px; flex-wrap: wrap; font-size: 13px; }
+    .qr { width: 220px; height: 220px; image-rendering: pixelated; display: block; margin: 8px auto; background: #fff; border-radius: 12px; padding: 8px; }
+    .result { padding: 10px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; margin-bottom: 6px; }
+    .result:hover, .result.sel { border-color: var(--primary); background: var(--primary-soft); }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="modal-back" id="modal"><div class="modal" id="modalBody"></div></div>
+  <script src="/lib/signalr.min.js"></script>
+  <script src="/assets/common.js"></script>
+  <script src="/board/board.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bed QR Labels · InPatient</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <style>
+    .labels { display: grid; grid-template-columns: repeat(auto-fill, minmax(60mm, 1fr)); gap: 6mm; }
+    .label { border: 1px dashed #889; border-radius: 4mm; padding: 4mm; text-align: center; background: #fff; color: #0f1f1e; break-inside: avoid; }
+    .label img { width: 44mm; height: 44mm; image-rendering: pixelated; }
+    .label b { font-size: 16pt; display: block; }
+    @media print { .tools { display: none; } body { background: #fff; } .page { padding: 0; } }
+  </style>
+</head>
+<body>
+  <div id="app"><div class="empty">Loading…</div></div>
+  <script src="/assets/common.js"></script>
+  <script>
+    (async () => {
+      const { api, esc } = IP;
+      const app = document.getElementById('app');
+      const wardId = new URLSearchParams(location.search).get('wardId');
+      if (!IP.session()?.fromLink) await IP.requireLogin(app, ['Receptionist', 'HospitalAdmin'], 'Bed QR labels');
+      try {
+        const list = await api(`/api/wards/${wardId}/qr`);
+        app.innerHTML = `<div class="page">
+          <div class="tools row" style="margin-bottom:16px"><h2>Bed QR labels</h2><div class="grow"></div><button class="btn" onclick="window.print()">Print</button></div>
+          <div class="labels">${list.map((q) => `<div class="label"><img src="data:image/png;base64,${q.pngBase64}" alt=""><b>${esc(q.label.split('·').pop().trim())}</b><span>${esc(q.label.split('·')[0])}</span></div>`).join('')}</div></div>`;
+      } catch (e) { app.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+    })();
+  </script>
+</body>
+</html>

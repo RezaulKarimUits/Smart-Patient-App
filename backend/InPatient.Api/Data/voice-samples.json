@@ -1,0 +1,107 @@
+{
+  "context": {
+    "age": 54, "sex": "M", "bed": "M-05", "ward": "Medicine Ward", "time": "15:40",
+    "activeItems": [
+      { "id": 101, "drugName": "Ceftriaxone", "form": "Inj", "strength": "1 g", "dose": "1 g", "route": "IV", "frequency": "Q12H" },
+      { "id": 102, "drugName": "Omeprazole", "form": "Cap", "strength": "20 mg", "dose": "20 mg", "route": "PO", "frequency": "BD" },
+      { "id": 103, "drugName": "Paracetamol", "form": "Tab", "strength": "500 mg", "dose": "500 mg", "route": "PO", "frequency": "PRN" },
+      { "id": 104, "drugName": "Pantoprazole", "form": "Inj", "strength": "40 mg", "dose": "40 mg", "route": "IV", "frequency": "Q12H" },
+      { "id": 105, "drugName": "Amlodipine", "form": "Tab", "strength": "5 mg", "dose": "5 mg", "route": "PO", "frequency": "OD" }
+    ]
+  },
+  "samples": [
+    {
+      "id": "N01", "language": "Banglish", "purpose": "NurseEntry",
+      "transcript": "M-05 er BP 100 by 60, pulse 118, temp 102, SpO2 93, respiration 24, Ceftriaxone 1 gram dilam",
+      "expected": { "vitals": { "systolic": 100, "diastolic": 60, "pulse": 118, "respRate": 24, "temperatureC": 38.9, "spo2": 93 },
+                    "medications": [ { "prescriptionItemId": 101, "status": "given" } ], "labResults": [] }
+    },
+    {
+      "id": "N02", "language": "Bangla", "purpose": "NurseEntry",
+      "transcript": "বিপি ১৩০ বাই ৮০, পালস ৯০, টেম্পারেচার ৯৯, স্যাচুরেশন ৯৭, রেসপিরেশন ১৮",
+      "expected": { "vitals": { "systolic": 130, "diastolic": 80, "pulse": 90, "respRate": 18, "temperatureC": 37.2, "spo2": 97 },
+                    "medications": [], "labResults": [] }
+    },
+    {
+      "id": "N03", "language": "Bangla", "purpose": "NurseEntry",
+      "transcript": "রোগীকে সেফট্রিয়াক্সোন ইনজেকশন দিয়েছি। ওমিপ্রাজল খেতে চায় নাই, বমি হচ্ছে বলে।",
+      "expected": { "vitals": {}, "medications": [ { "prescriptionItemId": 101, "status": "given" }, { "prescriptionItemId": 102, "status": "refused" } ], "labResults": [] }
+    },
+    {
+      "id": "N04", "language": "Banglish", "purpose": "NurseEntry",
+      "transcript": "BP eksho dosh by sottor, pulse nobboi, temp 38.5, SpO2 95, oxygen e ache, respiration bish",
+      "expected": { "vitals": { "systolic": 110, "diastolic": 70, "pulse": 90, "respRate": 20, "temperatureC": 38.5, "spo2": 95, "onOxygen": true },
+                    "medications": [], "labResults": [] }
+    },
+    {
+      "id": "N05", "language": "English", "purpose": "NurseEntry",
+      "transcript": "Blood pressure 150 over 95, heart rate 104, respiratory rate 22, temperature 37.2 celsius, saturation 94 percent on room air. Patient is confused.",
+      "expected": { "vitals": { "systolic": 150, "diastolic": 95, "pulse": 104, "respRate": 22, "temperatureC": 37.2, "spo2": 94, "onOxygen": false, "consciousness": "Confusion" },
+                    "medications": [], "labResults": [] }
+    },
+    {
+      "id": "N06", "language": "Banglish", "purpose": "NurseEntry",
+      "transcript": "Report eseche, Hb 9.8, platelet 65 hazar, creatinine 1.4",
+      "expected": { "vitals": {}, "medications": [],
+                    "labResults": [ { "testName": "Haemoglobin", "value": 9.8 }, { "testName": "Platelets", "value": 65000 }, { "testName": "Creatinine", "value": 1.4 } ] }
+    },
+    {
+      "id": "N07", "language": "Banglish", "purpose": "NurseEntry",
+      "transcript": "Napa 3 tay diyechi jor chilo, pantoprazole pore dibo patient NPO ache",
+      "expected": { "vitals": {}, "medications": [ { "prescriptionItemId": 103, "status": "given" }, { "prescriptionItemId": 104, "status": "delayed" } ], "labResults": [] }
+    },
+    {
+      "id": "N08", "language": "English", "purpose": "NurseEntry",
+      "transcript": "Withheld amlodipine because systolic is only 92. Pulse 96.",
+      "expected": { "vitals": { "systolic": 92, "pulse": 96 }, "medications": [ { "prescriptionItemId": 105, "status": "withheld" } ], "labResults": [] }
+    },
+    {
+      "id": "N09", "language": "Bangla", "purpose": "NurseEntry",
+      "transcript": "রোগীর পেটে ব্যথা, প্রস্রাব কম হচ্ছে। পালস ১১০, স্যাচুরেশন ৯৬।",
+      "expected": { "vitals": { "pulse": 110, "spo2": 96 }, "medications": [], "labResults": [], "noteRequired": true }
+    },
+    {
+      "id": "P01", "language": "Banglish", "purpose": "Prescription",
+      "transcript": "Inj. Ceftriaxone 1 gram IV 12 ghonta por por 5 din, Tab. Paracetamol 500 jor hole, Omeprazole 20 1+0+1 khabar age",
+      "expected": { "items": [
+        { "drugName": "Ceftriaxone", "frequency": "Q12H", "durationDays": 5, "route": "IV" },
+        { "drugName": "Paracetamol", "frequency": "PRN" },
+        { "drugName": "Omeprazole", "frequency": "BD", "instructionsContains": "before" } ] }
+    },
+    {
+      "id": "P02", "language": "Banglish", "purpose": "Prescription",
+      "transcript": "Tab Amlodipine 5 mg 0+0+1, Tab Metformin 500 1+0+1 khabar pore 1 soptaho",
+      "expected": { "items": [
+        { "drugName": "Amlodipine", "frequency": "OD", "instructionsContains": "night" },
+        { "drugName": "Metformin", "frequency": "BD", "durationDays": 7, "instructionsContains": "after" } ] }
+    },
+    {
+      "id": "P03", "language": "English", "purpose": "Prescription",
+      "transcript": "Start metronidazole 500 mg IV every 8 hours for 7 days and pantoprazole 40 mg IV once daily",
+      "expected": { "items": [
+        { "drugName": "Metronidazole", "frequency": "Q8H", "durationDays": 7, "route": "IV" },
+        { "drugName": "Pantoprazole", "frequency": "OD", "route": "IV" } ] }
+    },
+    {
+      "id": "P04", "language": "Bangla", "purpose": "Prescription",
+      "transcript": "সিরাপ প্যারাসিটামল ৫ এমএল জ্বর হলে, জিংক সিরাপ ১০ এমজি দিনে একবার ১০ দিন",
+      "expected": { "items": [
+        { "drugName": "Paracetamol", "frequency": "PRN" },
+        { "drugName": "Zinc", "frequency": "OD", "durationDays": 10 } ] }
+    },
+    {
+      "id": "P05", "language": "Banglish", "purpose": "Prescription",
+      "transcript": "Inj Furosemide 40 mg IV ekhoni, tarpor Tab Furosemide 40 1+0+0 5 din",
+      "expected": { "items": [
+        { "drugName": "Furosemide", "frequency": "STAT", "route": "IV" },
+        { "drugName": "Furosemide", "frequency": "OD", "durationDays": 5 } ] }
+    },
+    {
+      "id": "P06", "language": "Banglish", "purpose": "Prescription",
+      "transcript": "Neb Salbutamol 6 ghonta por por, Tab Prednisolone 40 mg 1+0+0 khabar pore 5 din",
+      "expected": { "items": [
+        { "drugName": "Salbutamol", "frequency": "Q6H", "doseIsNull": true },
+        { "drugName": "Prednisolone", "frequency": "OD", "durationDays": 5, "instructionsContains": "after" } ] }
+    }
+  ]
+}

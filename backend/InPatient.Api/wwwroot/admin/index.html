@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · InPatient</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <style>
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+    .tab { border: none; background: transparent; padding: 10px 14px; border-radius: 10px; font: inherit; font-weight: 600; color: var(--text-2); cursor: pointer; }
+    .tab.active { background: var(--primary-soft); color: var(--primary-strong); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .kpi .v { font-size: 26px; font-weight: 800; } .kpi .l { color: var(--text-2); font-size: 13px; }
+    .bar { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; } .bar i { display: block; height: 100%; background: var(--primary); }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-size: 13px; cursor: pointer; user-select: none; background: var(--surface); }
+    .chip.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .ev { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .ev time { color: var(--text-3); width: 110px; flex-shrink: 0; }
+    .scroll { overflow-x: auto; }
+    svg text { fill: var(--text-2); font-size: 11px; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="modal-back" id="modal"><div class="modal" id="modalBody"></div></div>
+  <script src="/assets/common.js"></script>
+  <script src="/admin/admin.js"></script>
+</body>
+</html>

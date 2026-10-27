@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wristband · InPatient</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <style>
+    .band { width: 250mm; max-width: 100%; height: 30mm; border: 1.5px solid #0f1f1e; border-radius: 15mm; display: flex; align-items: center; gap: 4mm;
+      padding: 0 8mm 0 4mm; background: #fff; color: #0f1f1e; margin: 24px auto; overflow: hidden; }
+    .band img { height: 26mm; width: 26mm; image-rendering: pixelated; }
+    .band .name { font-size: 15pt; font-weight: 800; line-height: 1.1; }
+    .band .line { font-size: 9.5pt; }
+    .band .hosp { margin-left: auto; text-align: right; font-size: 8.5pt; max-width: 55mm; }
+    .tools { text-align: center; }
+    @media print { .tools, .topbar { display: none !important; } body { background: #fff; } .band { margin: 0; } @page { size: landscape; margin: 8mm; } }
+  </style>
+</head>
+<body>
+  <div id="app"><div class="empty">Loading…</div></div>
+  <script src="/assets/common.js"></script>
+  <script>
+    (async () => {
+      const { api, esc, dhakaDate } = IP;
+      const app = document.getElementById('app');
+      const id = new URLSearchParams(location.search).get('id');
+      const session = IP.session();
+      if (!session?.fromLink) await IP.requireLogin(app, ['Receptionist', 'HospitalAdmin'], 'Print wristband');
+      try {
+        const w = await api(`/api/admissions/${id}/wristband`);
+        app.innerHTML = `
+          <div class="page tools">
+            <h2>Wristband for ${esc(w.patientName)}</h2>
+            <p class="muted">Print, cut along the outline and fasten on the patient's wrist. The QR holds only a random code — no personal data.</p>
+            <button class="btn" onclick="window.print()">Print</button>
+          </div>
+          <div class="band">
+            <img src="data:image/png;base64,${w.qrPngBase64}" alt="Wristband QR">
+            <div>
+              <div class="name">${esc(w.patientName)}</div>
+              <div class="line"><b>MRN</b> ${esc(w.mrn)} &nbsp; <b>DOB</b> ${esc(w.dateOfBirth)} (${w.ageYears}y ${esc(w.sex)}) ${w.bloodGroup ? '&nbsp; <b>Blood</b> ' + esc(w.bloodGroup) : ''}</div>
+              <div class="line"><b>${esc(w.wardName || '')} · ${esc(w.bedNumber || '')}</b> &nbsp; ${esc(w.consultantName)} &nbsp; Admitted ${dhakaDate(w.admittedAt)}</div>
+            </div>
+            <div class="hosp"><b>${esc(w.hospitalName)}</b><br>Scan to verify patient before giving medicines</div>
+          </div>`;
+        setTimeout(() => window.print(), 400);
+      } catch (e) {
+        app.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+      }
+    })();
+  </script>
+</body>
+</html>

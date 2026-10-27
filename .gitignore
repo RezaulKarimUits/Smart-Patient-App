@@ -1,0 +1,21 @@
+# .NET
+bin/
+obj/
+.vs/
+*.user
+TestResults/
+
+# Node / Expo
+node_modules/
+.expo/
+
+# Local env & secrets
+.env
+.env*.local
+secrets.json
+
+# Editor / local tooling
+.claude/settings.local.json
+
+# Stray empty clone
+backend/Smart-Patient-App/

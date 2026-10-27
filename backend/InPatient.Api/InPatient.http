@@ -1,0 +1,598 @@
+# InPatient API — every endpoint. Works with the VS Code "REST Client" extension and Visual Studio / Rider.
+# Run the login requests first; later requests reuse their tokens. All seeded passwords: Demo@123.
+@host = http://localhost:5080
+@admissionId = 1
+@wardId = 1
+@bedId = 5
+@prescriptionId = 1
+@itemId = 1
+@doseId = 1
+@alertId = 1
+@captureId = 1
+@fileId = 1
+
+### ---------- Auth ----------
+# @name reception
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "phone": "01800000002", "password": "Demo@123" }
+
+###
+# @name nurse
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "phone": "01800000011", "password": "Demo@123" }
+
+###
+# @name consultant
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "phone": "01800000021", "password": "Demo@123" }
+
+###
+# @name hadmin
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "phone": "01800000001", "password": "Demo@123" }
+
+###
+# @name patient
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "phone": "01800000032", "password": "Demo@123" }
+
+###
+# @name super
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "phone": "01800000000", "password": "Demo@123" }
+
+###
+@rec = {{reception.response.body.$.token}}
+@nur = {{nurse.response.body.$.token}}
+@con = {{consultant.response.body.$.token}}
+@adm = {{hadmin.response.body.$.token}}
+@pat = {{patient.response.body.$.token}}
+@sup = {{super.response.body.$.token}}
+
+GET {{host}}/api/auth/me
+Authorization: Bearer {{rec}}
+
+### ---------- Bed board, wards, beds ----------
+GET {{host}}/api/board
+Authorization: Bearer {{rec}}
+
+###
+GET {{host}}/api/board?wardId={{wardId}}
+Authorization: Bearer {{rec}}
+
+###
+GET {{host}}/api/wards
+Authorization: Bearer {{rec}}
+
+###
+GET {{host}}/api/wards/{{wardId}}/consultants
+Authorization: Bearer {{rec}}
+
+###
+GET {{host}}/api/wards/{{wardId}}/history?from=2026-10-20&to=2026-10-26
+Authorization: Bearer {{adm}}
+
+###
+GET {{host}}/api/beds/{{bedId}}
+Authorization: Bearer {{rec}}
+
+###
+POST {{host}}/api/beds/{{bedId}}/reserve
+Authorization: Bearer {{rec}}
+Content-Type: application/json
+
+{ "note": "Reserved for ER patient" }
+
+###
+# Cleaning→Free, Free→Blocked (note required), Blocked→Free, Reserved(no patient)→Free
+POST {{host}}/api/beds/{{bedId}}/status
+Authorization: Bearer {{rec}}
+Content-Type: application/json
+
+{ "status": "Free", "note": "Released" }
+
+###
+GET {{host}}/api/beds/{{bedId}}/qr
+Authorization: Bearer {{rec}}
+
+###
+GET {{host}}/api/wards/{{wardId}}/qr
+Authorization: Bearer {{rec}}
+
+### ---------- Patients & admissions ----------
+GET {{host}}/api/patients?q=Karim
+Authorization: Bearer {{rec}}
+
+###
+# @name newPatient
+POST {{host}}/api/patients
+Authorization: Bearer {{rec}}
+Content-Type: application/json
+
+{ "name": "Karim Uddin", "dateOfBirth": "1972-03-01", "sex": "M", "phone": "01700000001", "guardian": "Rahima (wife)", "bloodGroup": "B+" }
+
+###
+# Admit: the bed becomes Reserved until the nurse scans bed + wristband
+# @name admit
+POST {{host}}/api/admissions
+Authorization: Bearer {{rec}}
+Content-Type: application/json
+
+{ "patientId": {{newPatient.response.body.$.id}}, "bedId": {{bedId}}, "consultantUserId": 13, "provisionalDiagnosis": "Fever, sepsis?" }
+
+###
+GET {{host}}/api/admissions
+Authorization: Bearer {{nur}}
+
+###
+GET {{host}}/api/admissions/{{admissionId}}
+Authorization: Bearer {{nur}}
+
+###
+GET {{host}}/api/admissions/{{admissionId}}/wristband
+Authorization: Bearer {{rec}}
+
+###
+POST {{host}}/api/admissions/{{admissionId}}/transfer
+Authorization: Bearer {{rec}}
+Content-Type: application/json
+
+{ "bedId": 22, "reason": "Needs surgical review" }
+
+###
+GET {{host}}/api/admissions/{{admissionId}}/journey
+Authorization: Bearer {{nur}}
+
+### ---------- Scanning ----------
+GET {{host}}/api/scan/resolve?token={{admit.response.body.$.wristband.token}}
+Authorization: Bearer {{nur}}
+
+###
+POST {{host}}/api/scan/confirm-bed
+Authorization: Bearer {{nur}}
+Content-Type: application/json
+
+{ "bedToken": "<bed qr token>", "wristbandToken": "{{admit.response.body.$.wristband.token}}" }
+
+###
+POST {{host}}/api/scan/transfer
+Authorization: Bearer {{nur}}
+Content-Type: application/json
+
+{ "wristbandToken": "<wristband token>", "bedToken": "<new bed qr token>", "reason": "Transfer to ICU" }
+
+### ---------- Prescriptions & doses ----------
+GET {{host}}/api/admissions/{{admissionId}}/prescriptions
+Authorization: Bearer {{con}}
+
+###
+POST {{host}}/api/admissions/{{admissionId}}/prescriptions
+Authorization: Bearer {{con}}
+Content-Type: application/json
+
+{
+  "generalInstructions": "Vitals 4-hourly",
+  "items": [
+    { "drugName": "Ceftriaxone", "form": "Inj", "strength": "1 g", "dose": "1 g", "route": "IV", "frequency": "Q12H", "durationDays": 5 },
+    { "drugName": "Paracetamol", "form": "Tab", "strength": "500 mg", "dose": "500 mg", "route": "PO", "frequency": "PRN", "instructions": "If fever" },
+    { "drugName": "Omeprazole", "form": "Cap", "strength": "20 mg", "dose": "20 mg", "route": "PO", "frequency": "BD", "durationDays": 5, "instructions": "Before meal" }
+  ]
+}
+
+###
+GET {{host}}/api/prescriptions/{{prescriptionId}}
+Authorization: Bearer {{con}}
+
+###
+PUT {{host}}/api/prescriptions/{{prescriptionId}}
+Authorization: Bearer {{con}}
+Content-Type: application/json
+
+{ "generalInstructions": null, "items": [ { "drugName": "Ceftriaxone", "form": "Inj", "dose": "1 g", "route": "IV", "frequency": "Q12H", "durationDays": 7 } ] }
+
+###
+DELETE {{host}}/api/prescriptions/{{prescriptionId}}
+Authorization: Bearer {{con}}
+
+###
+POST {{host}}/api/prescriptions/{{prescriptionId}}/sign
+Authorization: Bearer {{con}}
+
+###
+POST {{host}}/api/prescriptions/{{prescriptionId}}/files
+Authorization: Bearer {{con}}
+Content-Type: multipart/form-data; boundary=B
+
+--B
+Content-Disposition: form-data; name="kind"
+
+Prescription
+--B
+Content-Disposition: form-data; name="file"; filename="rx.png"
+Content-Type: image/png
+
+< ./wwwroot/samples/sample-prescription.png
+--B--
+
+###
+POST {{host}}/api/prescription-items/{{itemId}}/stop
+Authorization: Bearer {{con}}
+
+###
+GET {{host}}/api/admissions/{{admissionId}}/doses
+Authorization: Bearer {{nur}}
+
+###
+GET {{host}}/api/nurse/medication-round
+Authorization: Bearer {{nur}}
+
+###
+# Requires the scanned wristband; another patient's band → 409 "Wrong patient"
+POST {{host}}/api/doses/{{doseId}}/record
+Authorization: Bearer {{nur}}
+Content-Type: application/json
+
+{ "wristbandToken": "<wristband token>", "status": "Given", "reason": null }
+
+###
+POST {{host}}/api/prescription-items/{{itemId}}/prn-dose
+Authorization: Bearer {{nur}}
+Content-Type: application/json
+
+{ "wristbandToken": "<wristband token>", "reason": "Temp 38.6 C" }
+
+### ---------- Vitals, labs, notes, timeline, sign-off ----------
+POST {{host}}/api/admissions/{{admissionId}}/vitals
+Authorization: Bearer {{nur}}
+Content-Type: application/json
+
+{ "systolic": 100, "diastolic": 60, "pulse": 118, "respRate": 24, "temperature": 102, "temperatureUnit": "F", "spO2": 93, "onOxygen": false, "consciousness": "Alert" }
+
+###
+GET {{host}}/api/admissions/{{admissionId}}/vitals?hours=120
+Authorization: Bearer {{con}}
+
+###
+POST {{host}}/api/admissions/{{admissionId}}/labs
+Authorization: Bearer {{nur}}
+Content-Type: application/json
+
+[ { "testName": "Hb", "value": 9.1, "unit": "g/dL" }, { "testName": "Platelet count", "value": 140, "unit": "x10^3/uL" } ]
+
+###
+GET {{host}}/api/admissions/{{admissionId}}/labs
+Authorization: Bearer {{con}}
+
+###
+POST {{host}}/api/admissions/{{admissionId}}/notes
+Authorization: Bearer {{nur}}
+Content-Type: application/json
+
+{ "noteType": "Nursing", "text": "Patient comfortable, tolerating oral fluids." }
+
+###
+GET {{host}}/api/admissions/{{admissionId}}/notes
+Authorization: Bearer {{con}}
+
+###
+GET {{host}}/api/admissions/{{admissionId}}/timeline?limit=100
+Authorization: Bearer {{con}}
+
+###
+GET {{host}}/api/signoff/pending
+Authorization: Bearer {{con}}
+
+###
+POST {{host}}/api/signoff
+Authorization: Bearer {{con}}
+Content-Type: application/json
+
+{ "vitalIds": [1, 2], "labIds": [], "noteIds": [] }
+
+### ---------- Worklists & alerts ----------
+GET {{host}}/api/nurse/beds
+Authorization: Bearer {{nur}}
+
+###
+POST {{host}}/api/care-tasks/1/done
+Authorization: Bearer {{nur}}
+
+###
+GET {{host}}/api/consultant/patients
+Authorization: Bearer {{con}}
+
+###
+GET {{host}}/api/alerts?active=true
+Authorization: Bearer {{con}}
+
+###
+GET {{host}}/api/alerts?admissionId={{admissionId}}
+Authorization: Bearer {{nur}}
+
+###
+POST {{host}}/api/alerts/{{alertId}}/ack
+Authorization: Bearer {{con}}
+
+###
+POST {{host}}/api/alerts/{{alertId}}/resolve
+Authorization: Bearer {{con}}
+
+### ---------- Files (Blob storage + SAS) ----------
+POST {{host}}/api/admissions/{{admissionId}}/files
+Authorization: Bearer {{nur}}
+Content-Type: multipart/form-data; boundary=B
+
+--B
+Content-Disposition: form-data; name="kind"
+
+Progress
+--B
+Content-Disposition: form-data; name="caption"
+
+Wound day 2
+--B
+Content-Disposition: form-data; name="file"; filename="wound.png"
+Content-Type: image/png
+
+< ./wwwroot/samples/sample-progress-photo.png
+--B--
+
+###
+GET {{host}}/api/admissions/{{admissionId}}/files
+Authorization: Bearer {{nur}}
+
+###
+GET {{host}}/api/files/{{fileId}}
+Authorization: Bearer {{nur}}
+
+### ---------- AI (503 {"error":"AI not configured"} without OPENAI_API_KEY) ----------
+# Voice: multipart audio + admissionId. (A "transcript" form field may be sent instead of audio.)
+POST {{host}}/api/voice/nurse-entry
+Authorization: Bearer {{nur}}
+Content-Type: multipart/form-data; boundary=B
+
+--B
+Content-Disposition: form-data; name="admissionId"
+
+{{admissionId}}
+--B
+Content-Disposition: form-data; name="transcript"
+
+M-05 er BP 100 by 60, pulse 118, temp 102, SpO2 93, respiration 24, Ceftriaxone 1 gram dilam
+--B--
+
+###
+POST {{host}}/api/voice/prescription
+Authorization: Bearer {{con}}
+Content-Type: multipart/form-data; boundary=B
+
+--B
+Content-Disposition: form-data; name="admissionId"
+
+{{admissionId}}
+--B
+Content-Disposition: form-data; name="transcript"
+
+Inj. Ceftriaxone 1 gram IV 12 ghonta por por 5 din, Tab. Paracetamol 500 jor hole, Omeprazole 20 1+0+1 khabar age
+--B--
+
+###
+POST {{host}}/api/voice/round-note
+Authorization: Bearer {{con}}
+Content-Type: multipart/form-data; boundary=B
+
+--B
+Content-Disposition: form-data; name="admissionId"
+
+{{admissionId}}
+--B
+Content-Disposition: form-data; name="transcript"
+
+Patient er jor kome geche, chest e crepitation kom. Plan: antibiotic continue, kal CBC repeat.
+--B--
+
+###
+# Body: { "draft": <the (edited) draft from the capture response>, "wristbandToken": "<needed if medications>" }
+POST {{host}}/api/voice/{{captureId}}/confirm
+Authorization: Bearer {{nur}}
+Content-Type: application/json
+
+{ "draft": { "vitals": { "systolic": 100, "diastolic": 60, "pulse": 118, "respRate": 24, "temperature": 38.9, "temperatureUnit": "C", "spo2": 93, "onOxygen": null, "consciousness": null },
+             "medications": [], "labResults": [], "note": null, "clarificationQuestion": null }, "wristbandToken": null }
+
+###
+POST {{host}}/api/voice/{{captureId}}/discard
+Authorization: Bearer {{nur}}
+
+###
+POST {{host}}/api/admissions/{{admissionId}}/reports/extract
+Authorization: Bearer {{nur}}
+Content-Type: multipart/form-data; boundary=B
+
+--B
+Content-Disposition: form-data; name="image"; filename="report.png"
+Content-Type: image/png
+
+< ./wwwroot/samples/sample-lab-report.png
+--B--
+
+###
+POST {{host}}/api/admissions/{{admissionId}}/reports/confirm
+Authorization: Bearer {{nur}}
+Content-Type: application/json
+
+{ "fileId": {{fileId}}, "results": [ { "testName": "Haemoglobin", "value": 10.2, "unit": "g/dL", "refLow": 12, "refHigh": 16 } ] }
+
+###
+POST {{host}}/api/admissions/{{admissionId}}/ai-progress
+Authorization: Bearer {{con}}
+
+###
+GET {{host}}/api/nurse/handover
+Authorization: Bearer {{nur}}
+
+###
+POST {{host}}/api/admissions/{{admissionId}}/discharge/draft
+Authorization: Bearer {{con}}
+
+###
+POST {{host}}/api/admissions/{{admissionId}}/discharge
+Authorization: Bearer {{con}}
+Content-Type: application/json
+
+{ "summary": "Admitted with community-acquired pneumonia. Treated with IV ceftriaxone; afebrile 48 h. Discharged on oral antibiotics; review in 1 week." }
+
+### ---------- Patient (read-only) ----------
+GET {{host}}/api/me/admissions
+Authorization: Bearer {{pat}}
+
+###
+GET {{host}}/api/me/admissions/3
+Authorization: Bearer {{pat}}
+
+### ---------- Hospital admin ----------
+GET {{host}}/api/admin/wards
+Authorization: Bearer {{adm}}
+
+###
+POST {{host}}/api/admin/wards
+Authorization: Bearer {{adm}}
+Content-Type: application/json
+
+{ "name": "Cardiology Ward", "code": "C", "type": "Other", "floor": "6th floor" }
+
+###
+PUT {{host}}/api/admin/wards/{{wardId}}
+Authorization: Bearer {{adm}}
+Content-Type: application/json
+
+{ "name": "Medicine Ward", "code": "M", "type": "Medicine", "floor": "3rd floor", "isActive": true }
+
+###
+GET {{host}}/api/admin/wards/{{wardId}}/beds
+Authorization: Bearer {{adm}}
+
+###
+POST {{host}}/api/admin/wards/{{wardId}}/beds
+Authorization: Bearer {{adm}}
+Content-Type: application/json
+
+{ "count": 2 }
+
+###
+POST {{host}}/api/admin/beds/{{bedId}}/regenerate-qr
+Authorization: Bearer {{adm}}
+
+###
+GET {{host}}/api/admin/staff?role=Nurse
+Authorization: Bearer {{adm}}
+
+###
+POST {{host}}/api/admin/staff
+Authorization: Bearer {{adm}}
+Content-Type: application/json
+
+{ "name": "Rehana Akter", "phone": "01800000019", "role": "Nurse", "designation": "Staff nurse", "password": "Demo@123", "patientId": null }
+
+###
+PUT {{host}}/api/admin/staff/5
+Authorization: Bearer {{adm}}
+Content-Type: application/json
+
+{ "name": "Shampa Rani Das", "designation": "Senior staff nurse", "isActive": true }
+
+###
+POST {{host}}/api/admin/staff/5/reset-password
+Authorization: Bearer {{adm}}
+Content-Type: application/json
+
+{ "password": "Demo@123" }
+
+###
+PUT {{host}}/api/admin/consultants/13/wards
+Authorization: Bearer {{adm}}
+Content-Type: application/json
+
+{ "wardIds": [1, 4] }
+
+###
+GET {{host}}/api/admin/shifts?date=2026-10-26&wardId={{wardId}}
+Authorization: Bearer {{adm}}
+
+###
+POST {{host}}/api/admin/shifts
+Authorization: Bearer {{adm}}
+Content-Type: application/json
+
+{ "nurseUserId": 5, "wardId": 1, "shiftDate": "2026-10-27", "shiftType": "Morning", "bedIds": [1, 3, 5] }
+
+###
+DELETE {{host}}/api/admin/shifts/1
+Authorization: Bearer {{adm}}
+
+### ---------- SuperAdmin ----------
+GET {{host}}/api/super/hospitals
+Authorization: Bearer {{sup}}
+
+###
+POST {{host}}/api/super/hospitals
+Authorization: Bearer {{sup}}
+Content-Type: application/json
+
+{ "name": "Sylhet Valley Hospital", "code": "SVH", "address": "Zindabazar, Sylhet", "phone": "+880 821 000000" }
+
+###
+PUT {{host}}/api/super/hospitals/1
+Authorization: Bearer {{sup}}
+Content-Type: application/json
+
+{ "name": "Dhaka Care General Hospital", "code": "DCGH", "address": "House 12, Road 7, Dhanmondi, Dhaka 1205", "phone": "+880 2 5810 0001", "isActive": true }
+
+###
+GET {{host}}/api/super/hospitals/1/admins
+Authorization: Bearer {{sup}}
+
+###
+POST {{host}}/api/super/hospitals/1/admins
+Authorization: Bearer {{sup}}
+Content-Type: application/json
+
+{ "name": "Second Admin", "phone": "01800000009", "password": "Demo@123" }
+
+### ---------- Development only ----------
+GET {{host}}/api/dev/clock
+Authorization: Bearer {{nur}}
+
+###
+POST {{host}}/api/dev/advance-time
+Authorization: Bearer {{nur}}
+Content-Type: application/json
+
+{ "minutes": 45 }
+
+###
+POST {{host}}/api/dev/reset-clock
+Authorization: Bearer {{nur}}
+
+###
+GET {{host}}/api/dev/scan-tokens
+Authorization: Bearer {{nur}}
+
+###
+POST {{host}}/api/dev/voice-eval
+Authorization: Bearer {{con}}
+
+###
+GET {{host}}/health
