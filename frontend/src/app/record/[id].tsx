@@ -18,7 +18,7 @@ import { toast, toastError } from '@/components/Toast';
 
 type Phase = 'capture' | 'processing' | 'confirm' | 'saving' | 'done';
 
-/** Nurse entry: speak (Bangla/English/Banglish) or type → review editable draft → confirm (wristband scan if a dose is included). */
+/** Nurse entry: speak (English) or type → review editable draft → confirm (wristband scan if a dose is included). */
 export default function RecordEntry() {
   const t = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -154,8 +154,8 @@ export default function RecordEntry() {
               {rec.error ? <Notice tone="critical" message={rec.error} /> : null}
               <Card style={{ marginTop: 20, alignSelf: 'stretch' }}>
                 <T v="label" color="muted">SAY FOR EXAMPLE</T>
-                <T style={{ marginTop: 6 }}>"{header.data?.bedNumber ?? 'M-05'} er BP 100 by 60, pulse 118, temp 102, SpO2 93, respiration 24, Ceftriaxone 1 gram dilam"</T>
-                <T v="caption" color="faint" style={{ marginTop: 6 }}>বাংলা, English or Banglish. Nothing is saved until you confirm.</T>
+                <T style={{ marginTop: 6 }}>"{header.data?.bedNumber ?? 'M-05'}, BP 100 by 60, pulse 118, temp 102, SpO2 93, respiration 24, Ceftriaxone 1 gram given"</T>
+                <T v="caption" color="faint" style={{ marginTop: 6 }}>Speak in English. Nothing is saved until you confirm.</T>
               </Card>
             </View>
           ) : (

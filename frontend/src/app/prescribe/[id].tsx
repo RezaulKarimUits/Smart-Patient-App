@@ -158,7 +158,7 @@ export default function Prescribe() {
           {rec.error ? <Notice tone="critical" message={rec.error} /> : null}
           <Card style={{ marginTop: 20, alignSelf: 'stretch' }}>
             <T v="label" color="muted">EXAMPLE</T>
-            <T style={{ marginTop: 6 }}>"Inj. Ceftriaxone 1 gram IV 12 ghonta por por 5 din, Tab. Paracetamol 500 jor hole, Omeprazole 20 1+0+1 khabar age"</T>
+            <T style={{ marginTop: 6 }}>"Inj. Ceftriaxone 1 gram IV every 12 hours for 5 days, Tab. Paracetamol 500 as needed for fever, Omeprazole 20 twice daily before food"</T>
           </Card>
         </View>
       ) : (

@@ -193,37 +193,40 @@ public static class AiPrompts
     public const string Safety = "You support clinical staff; you never diagnose, never recommend treatment changes and never replace clinical judgement.";
 
     public const string NurseEntry = """
-    You turn a hospital nurse's spoken bedside report (Bangladesh) into a structured draft that the nurse will review before anything is saved.
-    The transcript may be Bangla, English or Banglish (Bangla written in Latin letters), with Bangla number words (e.g. "eksho chollish" = 140, "nobboi" = 90) or digits.
+    You turn a hospital nurse's spoken bedside report into a structured draft that the nurse will review before anything is saved.
+    The report is spoken in English. Numbers may be digits or English number words ("one forty" = 140, "ninety" = 90).
     Rules:
     - Extract ONLY what was said. Never invent, estimate or carry over values. Anything not mentioned is null (or an empty array).
     - Blood pressure "140 by 90", "140/90", "140 over 90" -> systolic 140, diastolic 90.
     - Temperature: report the number as spoken and set temperatureUnit: values 93-108 are "F", values 34-42 are "C". If the unit was spoken, use it.
-    - SpO2 / oxygen saturation / "saturation" -> spo2 (integer %). "oxygen e ache", "on oxygen", "O2 dichhi" -> onOxygen true; "room air" -> false; otherwise null.
+    - SpO2 / oxygen saturation / "saturation" / "sats" -> spo2 (integer %). "on oxygen", "on O2", "on 2 litres" -> onOxygen true; "room air" -> false; otherwise null.
     - Consciousness: only if stated (alert/confused/responds to voice/responds to pain/unresponsive), otherwise null.
-    - Medicines: "dilam / diyechi / deya hoyeche / given / dewa holo" -> "given"; "pore dibo / dei nai (will give later)" -> "delayed"; "dei nai" with a clinical reason (NPO, low BP, doctor said hold) -> "withheld"; "khete chay nai / refuse korse / khabe na" -> "refused". Put the stated reason in reason, else null.
-    - Match each medicine to the ACTIVE PRESCRIPTION list provided, including transliterations and brand-like spellings ("seftriakson", "ceftriaxon" -> Ceftriaxone; "omiprazol" -> Omeprazole; "napa" -> Paracetamol). Use that item's id as prescriptionItemId. If no active item matches, prescriptionItemId is null and drugName is what was said.
-    - Times: "10 tay", "dosh tay" -> the 10:00 or 22:00 nearest to the current time given; return "HH:mm" 24-hour. If no time was said, time is null.
-    - Lab results spoken (e.g. "Hb 9.8", "platelet 65 hazar", "creatinine 1.4") -> labResults with testName, value and unit if said. "hazar" = thousand, "lakh" = 100000.
+    - Medicines: "given", "gave", "administered", "done" -> "given"; "will give later", "postponed", "not yet given" -> "delayed"; "held", "withheld", "not given because ..." with a clinical reason (NPO, low BP, doctor said hold) -> "withheld"; "refused", "patient declined", "won't take it" -> "refused". Put the stated reason in reason, else null.
+    - Match each medicine to the ACTIVE PRESCRIPTION list provided, allowing for mis-heard or misspelled names and common brand names ("ceftriaxon" -> Ceftriaxone; "omeprazol" -> Omeprazole; "Napa" -> Paracetamol). Use that item's id as prescriptionItemId. If no active item matches, prescriptionItemId is null and drugName is what was said.
+    - Times: "at 10", "10 o'clock" -> the 10:00 or 22:00 nearest to the current time given; "10 pm" -> 22:00; return "HH:mm" 24-hour. If no time was said, time is null.
+    - Lab results spoken (e.g. "Hb 9.8", "platelets 65 thousand", "creatinine 1.4") -> labResults with testName, value and unit if said. "thousand" = x1000, "lakh" = 100000.
     - note: a concise English nursing note of other observations that were said (symptoms, intake/output, events). null if nothing else was said.
-    - clarificationQuestion: ONLY if something essential is ambiguous (e.g. which medicine, a number that could be two values), ask one short question in the nurse's language (Bangla/Banglish/English as they spoke). Otherwise null.
+    - clarificationQuestion: ONLY if something essential is ambiguous (e.g. which medicine, a number that could be two values), ask one short question in English. Otherwise null.
+    - Write every text field in English.
     """;
 
     public const string Prescription = """
-    You turn a consultant's spoken prescription (Bangladesh; Bangla, English or Banglish) into a structured DRAFT the consultant will review and sign.
+    You turn a consultant's spoken prescription (in English) into a structured DRAFT the consultant will review and sign.
     Rules:
-    - One item per medicine. drugName is the generic name in English with correct spelling (e.g. "seftriakson" -> Ceftriaxone). Keep form (Tab, Cap, Inj, Syrup, Inf, Neb), strength and dose as said.
-    - NEVER invent a dose, strength or route. If the dose was not said, dose is null. Route: Tab/Cap/Syrup -> "PO"; "IV", "IM", "SC", "shire" (vein) -> IV; if an injection's route was not said, route is null.
-    - Bangladeshi frequency conventions: "1+0+1" -> BD; "1+1+1" -> TDS; "1+0+0" -> OD (morning); "0+0+1" -> OD with instructions "at night"; "1+1+1+1" -> QID;
-      "12 ghonta por por" / "every 12 hours" -> Q12H; "8 ghonta por por" -> Q8H; "6 ghonta por por" -> Q6H; "4 ghonta por por" -> Q4H;
-      "dine ekbar" -> OD; "dine duibar" -> BD; "dine tinbar" -> TDS; "ekhoni" / "stat" -> STAT; "jor hole" / "betha hole" / "proyojone" / "if needed" -> PRN (put the condition, e.g. "if fever", in instructions).
-    - "khabar age" -> instructions "before meal"; "khabar pore" -> "after meal". "5 din" -> durationDays 5; "1 soptaho" -> 7; "2 soptaho" -> 14. No duration said -> null.
+    - One item per medicine. drugName is the generic name with correct spelling (e.g. "ceftriaxon" -> Ceftriaxone). Keep form (Tab, Cap, Inj, Syrup, Inf, Neb), strength and dose as said.
+    - NEVER invent a dose, strength or route. If the dose was not said, dose is null. Route: Tab/Cap/Syrup -> "PO"; "IV", "IM", "SC", "intravenous" -> IV; if an injection's route was not said, route is null.
+    - Frequency: "once daily" / "once a day" -> OD; "twice daily" -> BD; "three times daily" -> TDS; "four times daily" -> QID;
+      "every 12 hours" -> Q12H; "every 8 hours" -> Q8H; "every 6 hours" -> Q6H; "every 4 hours" -> Q4H; "now" / "stat" / "immediately" -> STAT;
+      "as needed" / "if needed" / "when required" / "PRN" -> PRN (put the condition, e.g. "if fever", in instructions).
+      Dose-pattern shorthand: "1+0+1" -> BD; "1+1+1" -> TDS; "1+0+0" -> OD (morning); "0+0+1" -> OD with instructions "at night"; "1+1+1+1" -> QID; "at night" / "at bedtime" -> OD with instructions "at night".
+    - "before food" / "before meals" -> instructions "before meal"; "after food" / "after meals" -> "after meal". "for 5 days" -> durationDays 5; "for 1 week" -> 7; "for 2 weeks" -> 14. No duration said -> null.
     - generalInstructions: other orders that were said (e.g. monitoring, diet), else null.
-    - clarificationQuestion: only if something essential is ambiguous (e.g. dose missing, unclear drug), one short question in the consultant's language; else null.
+    - clarificationQuestion: only if something essential is ambiguous (e.g. dose missing, unclear drug), one short question in English; else null.
+    - Write every text field in English.
     """;
 
     public const string RoundNote = """
-    You turn a consultant's spoken ward-round note (Bangla, English or Banglish) into a concise English clinical note for the record.
+    You turn a consultant's spoken ward-round note (in English) into a concise English clinical note for the record.
     Keep only what was said; do not add findings, diagnoses or plans that were not stated. "note" = assessment/findings as said; "plan" = plan as said or null.
     clarificationQuestion only if something essential is ambiguous, else null.
     """;

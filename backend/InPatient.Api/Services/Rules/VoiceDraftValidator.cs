@@ -175,7 +175,7 @@ public static partial class VoiceDraftValidator
         return best;
     }
 
-    /// <summary>Crude phonetic key for Bangla-English transliterations ("seftriakson" ≈ "ceftriaxone").</summary>
+    /// <summary>Crude phonetic key for mis-heard or misspelled drug names ("seftriaxone" ≈ "ceftriaxone").</summary>
     public static string Phonetic(string s)
     {
         var x = new string(s.ToLowerInvariant().Where(char.IsLetter).ToArray());

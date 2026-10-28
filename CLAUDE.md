@@ -11,7 +11,7 @@ Multi-tenant hospital in-patient (ward) management demo for Bangladesh. ASP.NET 
 ## Commands
 - DB (re)create + seed: `pwsh backend/Database/run-db.ps1 -Reset` (drops & recreates InPatientDb; seed times are relative to "now", so reset before a demo)
 - Re-scaffold after schema change: `pwsh backend/Database/scaffold.ps1`
-- AI provider: any OpenAI-compatible API via `Ai:BaseUrl`. Dev uses Groq (user-secrets): `Ai:BaseUrl=https://api.groq.com/openai/v1`, `Ai:ChatModel=openai/gpt-oss-120b` (strict JSON schema OK), `Ai:VisionModel=qwen/qwen3.8-27b` (report photos), `Ai:TranscriptionModel=whisper-large-v3` (Bangla OK; prompt hint capped at 600 chars). Empty BaseUrl = OpenAI defaults.
+- AI provider: any OpenAI-compatible API via `Ai:BaseUrl`. Dev uses Groq (user-secrets): `Ai:BaseUrl=https://api.groq.com/openai/v1`, `Ai:ChatModel=openai/gpt-oss-120b` (strict JSON schema OK), `Ai:VisionModel=qwen/qwen3.8-27b` (report photos), `Ai:TranscriptionModel=whisper-large-v3` (prompt hint capped at 600 chars). Empty BaseUrl = OpenAI defaults.
 - Storage: Azure container `demo` on account `hospitalwardmgt`, via a container SAS URL in user-secrets (`dotnet user-secrets set "Storage:ContainerSasUrl" "<url>" --project backend/InPatient.Api`). Blobs go to `hospital-{id}/admissions/...`; downloads use HMAC-signed `/api/files/{id}/content` links (≤10 min), because a container SAS can't mint per-blob SAS and must never reach clients. Current SAS expires 2026-11-07. Without the secret, the API falls back to Azurite (`azurite --silent --location %TEMP%\azurite`) with one container per hospital and real SAS URLs.
 - API: `dotnet run --project backend/InPatient.Api` → http://0.0.0.0:5080 (Swagger `/swagger`, board `/board/`)
 - Tests: `dotnet test backend/InPatient.sln`
@@ -23,4 +23,5 @@ Multi-tenant hospital in-patient (ward) management demo for Bangladesh. ASP.NET 
 - Errors: throw `ApiException(status, msg)` → `{ "error": "..." }`. DTOs only, never return entities.
 - Every tenant table has `HospitalId`; global query filter via `ICurrentUser`. Background jobs use `CurrentUser.RunAsSystem()`.
 - No patient names in logs. AI calls log model, latency, tokens.
+- Voice and AI text are English only (`Ai:TranscriptionLanguage=en`); no Bangla/Banglish rules, samples or UI text.
 - Demo password for all seeded users: `Demo@123`.

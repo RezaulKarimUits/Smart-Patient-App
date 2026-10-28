@@ -21,7 +21,7 @@ public sealed class AiOptions
     /// <summary>Model for requests with an image (report photos). Empty = ChatModel.</summary>
     public string VisionModel { get; set; } = "";
     public string TranscriptionModel { get; set; } = "gpt-4o-transcribe";
-    public string TranscriptionLanguage { get; set; } = "bn";
+    public string TranscriptionLanguage { get; set; } = "en";
     public int TimeoutSeconds { get; set; } = 30;
 
     /// <summary>Ai:ApiKey, falling back to the OPENAI_API_KEY environment variable.</summary>

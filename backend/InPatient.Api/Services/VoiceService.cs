@@ -88,6 +88,7 @@ public sealed class VoiceService(InPatientDbContext db, IClock clock, ICurrentUs
         db.VoiceCaptures.Add(capture);
         await db.SaveChangesAsync(ct);
         log.LogInformation("Voice capture {CaptureId} {Purpose} drafted for admission {AdmissionId} with {Issues} issue(s)", capture.Id, purpose, admission.Id, issues.Count);
+        
         return new VoiceDraftResponse(capture.Id, purpose, transcript, draft, issues, question, requiresWristband, ctx.Items, audioId);
     }
 
@@ -119,7 +120,7 @@ public sealed class VoiceService(InPatientDbContext db, IClock clock, ICurrentUs
     }
 
     public static string BuildHint(VoiceContext ctx)
-        => "Hospital ward report in Bangla/English. Medicines: " + string.Join(", ", ctx.Items.Select(i => i.DrugName).Distinct())
+        => "Hospital ward report in English. Medicines: " + string.Join(", ", ctx.Items.Select(i => i.DrugName).Distinct())
            + ". Words: " + string.Join(", ", WardVocabulary) + ".";
 
     public async Task<List<ActiveItem>> ActiveItemsAsync(int admissionId, CancellationToken ct)
@@ -244,7 +245,7 @@ public sealed class VoiceService(InPatientDbContext db, IClock clock, ICurrentUs
             null, null, ClinicalService.ToDto(monitoring));
     }
 
-    /// <summary>"HH:mm" Dhaka → the matching instant nearest to now (handles "10 tay" around midnight).</summary>
+    /// <summary>"HH:mm" Dhaka → the matching instant nearest to now (handles "at 10" around midnight).</summary>
     public static DateTime ResolveTime(string? hhmm, DateTime nowUtc)
     {
         if (string.IsNullOrWhiteSpace(hhmm) || !TimeOnly.TryParse(hhmm, out var t)) return nowUtc;

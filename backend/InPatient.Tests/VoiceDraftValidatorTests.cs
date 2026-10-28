@@ -67,11 +67,11 @@ public class VoiceDraftValidatorTests
     }
 
     [Theory]
-    [InlineData("seftriakson", 101)]
+    [InlineData("seftriaxone", 101)]
     [InlineData("Inj. Ceftriaxon", 101)]
-    [InlineData("omiprazol", 102)]
+    [InlineData("omeprazol", 102)]
     [InlineData("Napa", 103)]
-    public void Transliterated_drug_names_match_active_items(string spoken, int expectedId)
+    public void Misspelled_drug_names_match_active_items(string spoken, int expectedId)
     {
         var r = VoiceDraftValidator.ValidateNurse(Draft(meds: [new NurseMedicationDraft(null, spoken, null, null, null, "given", null)]), Items);
         Assert.Equal(expectedId, r.Draft.Medications[0].PrescriptionItemId);
